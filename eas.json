@@ -13,6 +13,9 @@
     "production": {
       "android": {
         "image": "latest"
+      },
+      "ios": {
+        "image": "latest"
       }
     }
   },
