@@ -1,28 +1,60 @@
 import { Button, StyleSheet, TextInput } from "react-native";
 import { Text, View } from "@/components/Themed";
-import { useEffect, useState } from "react";
-import {
-  addTrack,
-  addUser,
-  TABLE_USER,
-} from "@/components/DatabaseManager/dataBaseUi";
+import { useState, useCallback } from "react";
+import { addTrack, addUser } from "@/components/DatabaseManager/dataBaseUi";
 import { useSQLiteContext } from "expo-sqlite";
+import { useFocusEffect } from "@react-navigation/native";
+import {
+  Driver,
+  TABLE_TRACK,
+  TABLE_USER,
+  Track,
+} from "@/components/DatabaseManager/types";
 
 export default function TabTwoScreen() {
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [track, setTrack] = useState("");
   const [trailer, setTrailer] = useState("");
-  const dataDriver = useSQLiteContext();
+  const db = useSQLiteContext();
+  const [latestUser, setLatestUser] = useState<Driver | null>(null);
+  const [latestTrack, setLatestTrack] = useState<Track | null>(null);
 
-  useEffect(() => {}, []);
+  useFocusEffect(
+    useCallback(() => {
+      function fetchLatestUser() {
+        const result = db.getAllSync<Driver>(`SELECT * FROM ${TABLE_USER}`);
+        if (result.length > 0) {
+          const user = result.slice(-1)[0];
+          setLatestUser(user);
+          setName(user.name);
+          setSurname(user.surname);
+        }
+      }
+
+      function fetchLatestTrack() {
+        const result = db.getAllSync<Track>(`SELECT * FROM ${TABLE_TRACK}`);
+        if (result.length > 0) {
+          const track = result.slice(-1)[0];
+          setLatestTrack(track);
+          setTrack(track.track);
+          setTrailer(track.trailer);
+        }
+      }
+
+      fetchLatestUser();
+      fetchLatestTrack();
+    }, [db])
+  );
 
   const handleSave = () => {
     addUser(name, surname);
   };
+
   const handleSaveTrack = () => {
     addTrack(track, trailer);
   };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Scrivi tuoi dati</Text>
@@ -37,13 +69,13 @@ export default function TabTwoScreen() {
           style={styles.input}
           onChangeText={setName}
           value={name}
-        ></TextInput>
+        />
         <TextInput
           placeholder="Cognome"
           style={styles.input}
           onChangeText={setSurname}
           value={surname}
-        ></TextInput>
+        />
         <Button
           onPress={handleSave}
           title="Salvare"
@@ -55,13 +87,13 @@ export default function TabTwoScreen() {
           style={styles.input}
           onChangeText={setTrack}
           value={track}
-        ></TextInput>
+        />
         <TextInput
           placeholder="Rimorchio"
           style={styles.input}
           onChangeText={setTrailer}
           value={trailer}
-        ></TextInput>
+        />
         <Button
           onPress={handleSaveTrack}
           title="Salva camion"
@@ -69,6 +101,20 @@ export default function TabTwoScreen() {
           accessibilityLabel="Learn more about this purple button"
         />
       </View>
+      {latestUser && (
+        <View>
+          <Text>
+            Latest User: {latestUser.name} {latestUser.surname}
+          </Text>
+        </View>
+      )}
+      {latestTrack && (
+        <View>
+          <Text>
+            Latest Track: {latestTrack.track} {latestTrack.trailer}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }

@@ -5,18 +5,11 @@ import { useSQLiteContext } from "expo-sqlite";
 import { useState } from "react";
 import { useFocusEffect } from "expo-router";
 import {
+  Driver,
   TABLE_TRACK,
   TABLE_USER,
-} from "@/components/DatabaseManager/dataBaseUi";
-
-interface Driver {
-  name: string;
-  surname: string;
-}
-interface Track {
-  track: string;
-  trailer: string;
-}
+  Track,
+} from "@/components/DatabaseManager/types";
 
 export default function TabOneScreen() {
   const [user, setUser] = useState<Driver>();
