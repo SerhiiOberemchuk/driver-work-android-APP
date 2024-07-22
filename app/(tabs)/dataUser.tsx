@@ -17,46 +17,54 @@ export default function TabTwoScreen() {
   const [track, setTrack] = useState("");
   const [trailer, setTrailer] = useState("");
   const db = useSQLiteContext();
-  const [latestUser, setLatestUser] = useState<Driver | null>(null);
-  const [latestTrack, setLatestTrack] = useState<Track | null>(null);
+  const [driver, setDriver] = useState<Driver | null>(null);
+  const [camion, setCamion] = useState<Track | null>(null);
+
+  const fetchLatestUser = useCallback(() => {
+    const result = db.getAllSync<Driver>(`SELECT * FROM ${TABLE_USER}`);
+    if (result.length > 0) {
+      const user = result.slice(-1)[0];
+      setDriver(user);
+      setName(user.name);
+      setSurname(user.surname);
+    }
+  }, [db]);
+
+  const fetchLatestTrack = useCallback(() => {
+    const result = db.getAllSync<Track>(`SELECT * FROM ${TABLE_TRACK}`);
+    if (result.length > 0) {
+      const track = result.slice(-1)[0];
+      setCamion(track);
+      setTrack(track.track);
+      setTrailer(track.trailer);
+    }
+  }, [db]);
 
   useFocusEffect(
     useCallback(() => {
-      function fetchLatestUser() {
-        const result = db.getAllSync<Driver>(`SELECT * FROM ${TABLE_USER}`);
-        if (result.length > 0) {
-          const user = result.slice(-1)[0];
-          setLatestUser(user);
-          setName(user.name);
-          setSurname(user.surname);
-        }
-      }
-
-      function fetchLatestTrack() {
-        const result = db.getAllSync<Track>(`SELECT * FROM ${TABLE_TRACK}`);
-        if (result.length > 0) {
-          const track = result.slice(-1)[0];
-          setLatestTrack(track);
-          setTrack(track.track);
-          setTrailer(track.trailer);
-        }
-      }
-
       fetchLatestUser();
       fetchLatestTrack();
-    }, [db])
+    }, [fetchLatestUser, fetchLatestTrack])
   );
 
   const handleSave = () => {
-    addUser(name, surname);
+    addUser(name, surname).then(fetchLatestUser);
   };
 
   const handleSaveTrack = () => {
-    addTrack(track, trailer);
+    addTrack(track, trailer).then(fetchLatestTrack);
   };
 
   return (
     <View style={styles.container}>
+      <View style={styles.containerData}>
+        <Text style={styles.title}>
+          Sono: {driver?.name} {driver?.surname}
+        </Text>
+        <Text style={styles.title}>
+          Mio mezzo: {camion?.track} {camion?.trailer}
+        </Text>
+      </View>
       <Text style={styles.title}>Scrivi tuoi dati</Text>
       <View
         style={styles.separator}
@@ -101,20 +109,6 @@ export default function TabTwoScreen() {
           accessibilityLabel="Learn more about this purple button"
         />
       </View>
-      {latestUser && (
-        <View>
-          <Text>
-            Latest User: {latestUser.name} {latestUser.surname}
-          </Text>
-        </View>
-      )}
-      {latestTrack && (
-        <View>
-          <Text>
-            Latest Track: {latestTrack.track} {latestTrack.trailer}
-          </Text>
-        </View>
-      )}
     </View>
   );
 }
@@ -125,6 +119,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  containerData: { marginBottom: 50 },
   title: {
     fontSize: 20,
     fontWeight: "bold",

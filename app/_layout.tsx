@@ -13,6 +13,10 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/components/useColorScheme";
 import { SQLiteProvider } from "expo-sqlite";
 import { DB_NAME } from "@/components/DatabaseManager/types";
+import {
+  createDbDriver,
+  createDbTrack,
+} from "@/components/DatabaseManager/dataBaseUi";
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -43,6 +47,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    createDbDriver(), createDbTrack();
+  }, []);
 
   if (!loaded) {
     return null;
